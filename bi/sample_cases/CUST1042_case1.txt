@@ -1,0 +1,11 @@
+Case ID: CASE-88213
+Customer ID: CUST1042
+Channel: Dispute chat log
+
+Transcript excerpt:
+Customer stated they were told to send the transfer "urgently" by someone claiming
+to be from their bank's fraud department. Customer said they felt forced and
+threatened to move funds quickly or lose their account. Customer later reported
+they do not recognize the merchant or device used for the transaction.
+
+Notes: Possible social-engineering / mule recruitment pattern. Escalate for review.

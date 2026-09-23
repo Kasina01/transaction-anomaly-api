@@ -1,0 +1,10 @@
+Case ID: CASE-88214
+Customer ID: CUST1042
+Channel: KYC document note
+
+Transcript excerpt:
+Routine KYC refresh. Customer confirmed employment details and address.
+No prior disputes on file. Account opened 3 years ago, consistent transaction
+history until the flagged event.
+
+Notes: No prior red flags. Standard profile.

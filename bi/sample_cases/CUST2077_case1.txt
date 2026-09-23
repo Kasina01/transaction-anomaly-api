@@ -1,0 +1,11 @@
+Case ID: CASE-88301
+Customer ID: CUST2077
+Channel: SAR narrative
+
+Transcript excerpt:
+Account shows rapid receipt and forwarding of funds within minutes across
+multiple recipients. Customer, when contacted, gave inconsistent answers about
+the source of funds and became evasive. Device ID matches two other flagged
+accounts opened in the same week.
+
+Notes: Strong mule-ring indicators. Recommend immediate freeze pending review.
