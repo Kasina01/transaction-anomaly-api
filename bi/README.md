@@ -67,9 +67,7 @@ POST /investigate
 
 `sample_cases/` contains a few made-up case documents (KYC notes, dispute
 chat logs, SAR narratives) keyed to fake customer IDs `CUST1042` and
-`CUST2077`, used only to test the search/tagging logic locally. Replace
-these with real (or realistic, sector-reference-aligned) case data once the
-official Fintech sector reference table is available.
+`CUST2077`, used only to test the search/tagging logic locally.
 
 ## Folder structure
 

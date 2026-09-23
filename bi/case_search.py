@@ -3,9 +3,7 @@ case_search.py
 
 Searches a folder of plain-text case documents (KYC notes, dispute chat logs,
 SAR narratives) for files related to a given customer_id, transaction_id, or
-device_id. On TechZone, this logic is replaced by a Watson Discovery
-collection and a natural-language query -- the function signature below is
-kept deliberately simple so that swap is a drop-in replacement later.
+device_id. 
 """
 
 import os

@@ -9,8 +9,6 @@ from sentiment_tags import tag_case_text
 
 app = FastAPI(title="BI Investigation Layer")
 
-# URL of Kelly's classification API. Change this if his API runs elsewhere
-# (e.g. a teammate's machine on the network, or later, its TechZone URL).
 PREDICT_API_URL = "http://127.0.0.1:8000/predict"
 
 

@@ -1,17 +1,12 @@
 """
 sentiment_tags.py
 
-Local stand-in for Watson NLU.
 
 Scans case text for simple keyword markers associated with two behavioral
 patterns relevant to fraud investigation:
   - distress / coercion language (possible social-engineering victim)
   - mule-ring language (evasiveness, inconsistent answers, rapid forwarding)
 
-On TechZone, this is replaced by a real Watson NLU call (sentiment +
-entity/keyword extraction). Keeping the tag names stable now means the
-downstream API contract (what PD's dashboard displays) does not need to
-change when the swap happens.
 """
 
 from typing import List, Dict
