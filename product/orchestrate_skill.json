@@ -1,0 +1,196 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "IBM Watson Orchestrate - Fraud Curtailment & Action Skill",
+    "description": "Enterprise skill for IBM Watson Orchestrate digital employees to orchestrate fraud investigation, execute automated account freezes, challenge step-up MFA, and allow human-in-the-loop overrides.",
+    "version": "1.0.0",
+    "contact": {
+      "name": "IBM Product Development Track",
+      "email": "product-dev@bootcamp.ibm.internal"
+    }
+  },
+  "servers": [
+    {
+      "url": "http://127.0.0.1:8002",
+      "description": "Local Product Orchestration Service"
+    }
+  ],
+  "paths": {
+    "/curtail": {
+      "post": {
+        "summary": "Orchestrate Fraud Curtailment Workflow",
+        "description": "Evaluates transaction anomaly scoring and BI case history, determines policy action, and automatically executes curtailment across banking channels.",
+        "operationId": "curtailTransaction",
+        "x-ibm-skill-type": "imported",
+        "x-ibm-skill-category": "Fraud Mitigation",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TransactionPayload"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Curtailment decision and action dispatch results",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/CurtailmentResponse"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/override": {
+      "post": {
+        "summary": "Investigator / Digital Employee Manual Override",
+        "description": "Enables Watson Orchestrate or a human compliance investigator to manually override an automated decision (e.g. unfreezing a confirmed legitimate transaction).",
+        "operationId": "overrideCurtailmentDecision",
+        "x-ibm-skill-type": "imported",
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OverrideRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Override acknowledgment",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "success": { "type": "boolean" },
+                    "transaction_id": { "type": "string" },
+                    "new_action": { "type": "string" },
+                    "message": { "type": "string" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/audit-logs": {
+      "get": {
+        "summary": "Retrieve Incident Audit Trail",
+        "description": "Fetches historical compliance and curtailment audit records for governance reporting.",
+        "operationId": "getAuditLogs",
+        "parameters": [
+          {
+            "name": "limit",
+            "in": "query",
+            "required": false,
+            "schema": { "type": "integer", "default": 20 }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "List of recent audited events",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": { "type": "object" }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/stats": {
+      "get": {
+        "summary": "Get Fraud Curtailment Key Metrics",
+        "description": "Returns operational KPIs across blocked transactions, frozen accounts, and auto-approvals.",
+        "operationId": "getMetrics",
+        "responses": {
+          "200": {
+            "description": "Operational statistics",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "total_transactions": { "type": "integer" },
+                    "frozen_accounts": { "type": "integer" },
+                    "blocked_transactions": { "type": "integer" },
+                    "step_up_challenges": { "type": "integer" },
+                    "auto_approved": { "type": "integer" },
+                    "manual_overrides": { "type": "integer" }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TransactionPayload": {
+        "type": "object",
+        "required": [
+          "transaction_id", "timestamp", "customer_id", "merchant_latitude",
+          "merchant_longitude", "merchant_category", "merchant_country",
+          "transaction_type", "amount", "ip_address", "device_id"
+        ],
+        "properties": {
+          "transaction_id": { "type": "string", "example": "TXN-9001" },
+          "timestamp": { "type": "string", "example": "2026-09-25T14:30:00" },
+          "customer_id": { "type": "string", "example": "CUST1042" },
+          "merchant_latitude": { "type": "number", "example": -1.286389 },
+          "merchant_longitude": { "type": "number", "example": 36.817223 },
+          "merchant_category": { "type": "string", "example": "electronics" },
+          "merchant_country": { "type": "string", "example": "KE" },
+          "transaction_type": { "type": "string", "example": "transfer" },
+          "amount": { "type": "number", "example": 45000.00 },
+          "ip_address": { "type": "string", "example": "197.232.14.5" },
+          "device_id": { "type": "string", "example": "DEV-77812" }
+        }
+      },
+      "OverrideRequest": {
+        "type": "object",
+        "required": ["transaction_id", "new_action", "notes"],
+        "properties": {
+          "transaction_id": { "type": "string", "example": "TXN-9001" },
+          "new_action": {
+            "type": "string",
+            "enum": ["AUTO_APPROVE", "BLOCK_TRANSACTION", "FREEZE_ACCOUNT", "STEP_UP_MFA"],
+            "example": "AUTO_APPROVE"
+          },
+          "notes": { "type": "string", "example": "Customer verified via phone call branch manager." }
+        }
+      },
+      "CurtailmentResponse": {
+        "type": "object",
+        "properties": {
+          "transaction_id": { "type": "string" },
+          "customer_id": { "type": "string" },
+          "amount": { "type": "number" },
+          "fraud_probability": { "type": "number" },
+          "flagged": { "type": "boolean" },
+          "decision_action": { "type": "string" },
+          "risk_tier": { "type": "string" },
+          "reason": { "type": "string" },
+          "distress_signals": { "type": "array", "items": { "type": "string" } },
+          "mule_ring_signals": { "type": "array", "items": { "type": "string" } },
+          "dispatched_actions": { "type": "array", "items": { "type": "object" } }
+        }
+      }
+    }
+  }
+}
