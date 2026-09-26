@@ -126,8 +126,10 @@ transaction-anomaly-api/
 │   ├── requirements.txt
 │   └── README.md
 │
-├── start_all_services.py       # One-command runner for all 3 microservices
-├── test_e2e_pipeline.py        # Automated end-to-end integration test suite
+├── gateway.py                  # UNIFIED SINGLE-URL GATEWAY (Port 8000)
+├── start_all_services.py       # One-command runner for the unified gateway
+├── test_unified_gateway.py     # Automated test suite for the unified gateway
+├── test_e2e_pipeline.py        # Microservices integration test suite
 ├── .gitignore
 └── README.md                   # Main project documentation
 ```
@@ -159,19 +161,20 @@ pip install -r product/requirements.txt
 
 ---
 
-### Option 1: Run All Services Concurrently (Recommended)
-Launch all 3 microservices simultaneously using the universal runner:
+### Option 1: The Unified Single-URL Gateway (Recommended)
+Instead of juggling multiple ports and URLs, launch the **Unified Single-URL Gateway** on **Port 8000**:
 
 ```bash
 python start_all_services.py
+# or: uvicorn gateway:app --reload --port 8000
 ```
 
-Once running:
-* **Investigator Dashboard:** [http://127.0.0.1:8002/dashboard](http://127.0.0.1:8002/dashboard)
-* **Product API Docs:** [http://127.0.0.1:8002/docs](http://127.0.0.1:8002/docs)
-* **BI API Docs:** [http://127.0.0.1:8001/docs](http://127.0.0.1:8001/docs)
-* **Data Science API Docs:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs)
-* **Watson Orchestrate Skill Spec:** [http://127.0.0.1:8002/orchestrate-skill.json](http://127.0.0.1:8002/orchestrate-skill.json)
+Everything connects through this **one single URL**:
+* **Central Control Hub:** [http://127.0.0.1:8000/](http://127.0.0.1:8000/) *(Interactive dashboard with live scenario runner)*
+* **Investigator Portal:** [http://127.0.0.1:8000/dashboard](http://127.0.0.1:8000/dashboard) *(Real-time alert monitoring & overrides)*
+* **Unified Swagger API Docs:** [http://127.0.0.1:8000/docs](http://127.0.0.1:8000/docs) *(All 3 tracks in one interactive Swagger UI)*
+* **Watson Orchestrate Skill Spec:** [http://127.0.0.1:8000/orchestrate-skill.json](http://127.0.0.1:8000/orchestrate-skill.json)
+* **Compliance Audit Trail:** [http://127.0.0.1:8000/audit-logs](http://127.0.0.1:8000/audit-logs)
 
 ---
 
