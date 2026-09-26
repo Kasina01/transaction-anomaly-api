@@ -196,17 +196,21 @@ uvicorn main:app --reload --port 8002
 
 ---
 
-### Option 3: Run the Automated Verification Suite
-To verify that all 3 services, models, decision rules, audit storage, and override endpoints are working end-to-end:
+### Option 3: Run the Automated Verification Suites
+You can run automated tests for both the unified gateway and the split microservices:
 
 ```bash
+# 1. Test the Unified Single-URL Gateway (Port 8000)
+python test_unified_gateway.py
+
+# 2. Test the 3 Microservices Pipeline (Ports 8000, 8001, 8002)
 python test_e2e_pipeline.py
 ```
 
 Expected result:
 ```
 ======================================================================
-[SUCCESS] ALL 8 TESTS PASSED! THE ENTIRE 3-TIER SYSTEM WORKS AS EXPECTED.
+[SUCCESS] ALL UNIFIED GATEWAY TESTS PASSED ON http://127.0.0.1:8000!
 ======================================================================
 ```
 
@@ -216,7 +220,7 @@ Expected result:
 
 ### Test Case A: Standard Legitimate Transaction (`AUTO_APPROVE`)
 ```json
-POST http://127.0.0.1:8002/curtail
+POST http://127.0.0.1:8000/curtail
 {
   "transaction_id": "TXN-AUTO-01",
   "timestamp": "2026-09-25T10:00:00",
@@ -237,7 +241,7 @@ POST http://127.0.0.1:8002/curtail
 
 ### Test Case B: Suspicious Mule Ring Transaction (`FREEZE_ACCOUNT`)
 ```json
-POST http://127.0.0.1:8002/curtail
+POST http://127.0.0.1:8000/curtail
 {
   "transaction_id": "TXN-MULE-01",
   "timestamp": "2026-09-25T10:05:00",
