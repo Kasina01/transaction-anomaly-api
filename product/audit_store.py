@@ -4,17 +4,20 @@ Persistent SQLite-based compliance audit log for the Product Development Curtail
 No external database credentials or API keys required.
 """
 
+import os
 import sqlite3
 import json
 from pathlib import Path
 from datetime import datetime
 from typing import List, Dict, Optional, Any
 
-DB_PATH = Path(__file__).parent / "audit.db"
+# OpenShift pods run as a random UID with a read-only app dir; write audit SQLite to /tmp there.
+DB_PATH = Path(os.getenv("AUDIT_DB_PATH", str(Path(__file__).parent / "audit.db")))
 
 
 def init_db():
     """Initializes the SQLite schema if it doesn't already exist."""
+    DB_PATH.parent.mkdir(parents=True, exist_ok=True)
     with sqlite3.connect(DB_PATH) as conn:
         cursor = conn.cursor()
         cursor.execute("""

@@ -1,0 +1,91 @@
+# IBM Technology Zone OpenShift (OCPv) manifests — do not use IBM Cloud CLI.
+# Apply after the image stream `fraud-platform` exists (oc start-build).
+apiVersion: apps.openshift.io/v1
+kind: DeploymentConfig
+metadata:
+  name: fraud-platform
+  labels:
+    app: fraud-platform
+    team: team8
+    environment: techzone
+spec:
+  replicas: 1
+  selector:
+    app: fraud-platform
+    deploymentconfig: fraud-platform
+  template:
+    metadata:
+      labels:
+        app: fraud-platform
+        deploymentconfig: fraud-platform
+    spec:
+      containers:
+        - name: fraud-platform
+          image: fraud-platform:latest
+          ports:
+            - containerPort: 8080
+          env:
+            - name: PORT
+              value: "8080"
+            - name: AUDIT_DB_PATH
+              value: /tmp/audit.db
+          readinessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 8
+            periodSeconds: 10
+          livenessProbe:
+            httpGet:
+              path: /healthz
+              port: 8080
+            initialDelaySeconds: 20
+            periodSeconds: 20
+          resources:
+            requests:
+              cpu: 100m
+              memory: 512Mi
+            limits:
+              cpu: "1"
+              memory: 1Gi
+  triggers:
+    - type: ConfigChange
+    - type: ImageChange
+      imageChangeParams:
+        automatic: true
+        containerNames:
+          - fraud-platform
+        from:
+          kind: ImageStreamTag
+          name: fraud-platform:latest
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fraud-platform
+  labels:
+    app: fraud-platform
+spec:
+  selector:
+    app: fraud-platform
+    deploymentconfig: fraud-platform
+  ports:
+    - name: http
+      port: 8080
+      targetPort: 8080
+---
+apiVersion: route.openshift.io/v1
+kind: Route
+metadata:
+  name: fraud-platform
+  labels:
+    app: fraud-platform
+spec:
+  to:
+    kind: Service
+    name: fraud-platform
+  port:
+    targetPort: http
+  tls:
+    termination: edge
+    insecureEdgeTerminationPolicy: Redirect

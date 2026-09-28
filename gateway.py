@@ -15,6 +15,7 @@ Features:
 - IBM Watson Orchestrate Skill Contract at GET /orchestrate-skill.json
 """
 
+import os
 import sys
 from pathlib import Path
 
@@ -610,14 +611,21 @@ def get_dashboard():
     return product_dashboard()
 
 
+@app.get("/healthz", tags=["Unified Control Center"])
+def healthz():
+    """Liveness probe for IBM TechZone / OpenShift."""
+    return {"status": "ok"}
+
+
 if __name__ == "__main__":
     import uvicorn
+    port = int(os.getenv("PORT", "8000"))
     print("\n" + "=" * 70)
-    print("🚀 LAUNCHING UNIFIED FRAUD PLATFORM (SINGLE PORT: 8000)")
+    print(f"LAUNCHING UNIFIED FRAUD PLATFORM (PORT: {port})")
     print("=" * 70)
-    print("• Central Control Hub:         http://127.0.0.1:8000/")
-    print("• Investigator Portal:         http://127.0.0.1:8000/dashboard")
-    print("• Unified API Swagger Docs:    http://127.0.0.1:8000/docs")
-    print("• Watson Orchestrate Skill:    http://127.0.0.1:8000/orchestrate-skill.json")
+    print("• Central Control Hub:         /")
+    print("• Investigator Portal:         /dashboard")
+    print("• Unified API Swagger Docs:    /docs")
+    print("• Watson Orchestrate Skill:    /orchestrate-skill.json")
     print("=" * 70 + "\n")
-    uvicorn.run("gateway:app", host="127.0.0.1", port=8000, reload=True)
+    uvicorn.run("gateway:app", host="0.0.0.0", port=port, reload=False)
