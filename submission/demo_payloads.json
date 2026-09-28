@@ -1,0 +1,28 @@
+{
+  "legitimate": {
+    "transaction_id": "TXN-AUTO-01",
+    "timestamp": "2026-09-25T10:00:00",
+    "customer_id": "CUST_LEGIT_01",
+    "merchant_latitude": 40.7128,
+    "merchant_longitude": -74.006,
+    "merchant_category": "grocery",
+    "merchant_country": "US",
+    "transaction_type": "pos",
+    "amount": 35.5,
+    "ip_address": "192.168.1.5",
+    "device_id": "DEV-LEGIT-01"
+  },
+  "mule_ring": {
+    "transaction_id": "TXN-MULE-01",
+    "timestamp": "2026-09-25T10:05:00",
+    "customer_id": "CUST1042",
+    "merchant_latitude": -1.286389,
+    "merchant_longitude": 36.817223,
+    "merchant_category": "electronics",
+    "merchant_country": "KE",
+    "transaction_type": "transfer",
+    "amount": 95000.0,
+    "ip_address": "197.232.14.5",
+    "device_id": "DEV-77812"
+  }
+}
