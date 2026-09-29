@@ -35,7 +35,11 @@ def test_gateway():
         # 1. Wait for gateway to become ready
         print("[*] Waiting for unified gateway to initialize...")
         ready = False
-        for _ in range(15):
+        for _ in range(60):
+            if proc.poll() is not None:
+                stdout, stderr = proc.communicate()
+                print("Process exited prematurely:", stderr.decode(errors='replace'))
+                break
             try:
                 res = client.get("http://127.0.0.1:8000/")
                 if res.status_code == 200:
