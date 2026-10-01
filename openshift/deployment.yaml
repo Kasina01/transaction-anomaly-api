@@ -1,4 +1,4 @@
-# IBM Technology Zone OpenShift (OCPv) manifests — do not use IBM Cloud CLI.
+# IBM Technology Zone OpenShift (OCPv) manifests â€” do not use IBM Cloud CLI.
 # Apply after the image stream `fraud-platform` exists (oc start-build).
 apiVersion: apps.openshift.io/v1
 kind: DeploymentConfig
@@ -29,6 +29,60 @@ spec:
               value: "8080"
             - name: AUDIT_DB_PATH
               value: /tmp/audit.db
+            - name: IBM_DISCOVERY_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ibm-bi-services
+                  key: IBM_DISCOVERY_URL
+                  optional: true
+            - name: IBM_DISCOVERY_APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: ibm-bi-services
+                  key: IBM_DISCOVERY_APIKEY
+                  optional: true
+            - name: IBM_DISCOVERY_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ibm-bi-services
+                  key: IBM_DISCOVERY_PROJECT_ID
+                  optional: true
+            - name: IBM_DISCOVERY_COLLECTION_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ibm-bi-services
+                  key: IBM_DISCOVERY_COLLECTION_ID
+                  optional: true
+            - name: IBM_WATSONX_IAM_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ibm-bi-services
+                  key: IBM_WATSONX_IAM_URL
+                  optional: true
+            - name: IBM_WATSONX_URL
+              valueFrom:
+                secretKeyRef:
+                  name: ibm-bi-services
+                  key: IBM_WATSONX_URL
+                  optional: true
+            - name: IBM_WATSONX_APIKEY
+              valueFrom:
+                secretKeyRef:
+                  name: ibm-bi-services
+                  key: IBM_WATSONX_APIKEY
+                  optional: true
+            - name: IBM_WATSONX_PROJECT_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ibm-bi-services
+                  key: IBM_WATSONX_PROJECT_ID
+                  optional: true
+            - name: IBM_WATSONX_MODEL_ID
+              valueFrom:
+                secretKeyRef:
+                  name: ibm-bi-services
+                  key: IBM_WATSONX_MODEL_ID
+                  optional: true
           readinessProbe:
             httpGet:
               path: /healthz

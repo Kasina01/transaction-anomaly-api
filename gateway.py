@@ -41,6 +41,7 @@ warnings.filterwarnings("ignore", category=InconsistentVersionWarning)
 # Import BI components
 from case_search import search_cases
 from sentiment_tags import tag_case_text
+from ibm_services import discovery_search, watsonx_analyze
 
 # Import Product components
 from curtailment import CurtailmentDecisionEngine
@@ -192,37 +193,39 @@ def run_predict_internal(tx: TransactionPayload) -> Dict[str, Any]:
     }
 
 
-def run_investigate_internal(tx: TransactionPayload, flagged: bool, fraud_prob: float) -> Dict[str, Any]:
-    """In-process execution of Tier 2 BI case retrieval & behavioral tagging."""
-    matched_cases = []
-    distress_signals = []
-    mule_ring_signals = []
-
-    if flagged:
+async def run_investigate_internal(tx: TransactionPayload, flagged: bool, fraud_prob: float) -> Dict[str, Any]:
+    """Shared BI investigation implementation for the unified gateway."""
+    result = {"transaction_id": tx.transaction_id, "fraud_probability": fraud_prob, "flagged": flagged, "matched_cases": [], "distress_signals": [], "mule_ring_signals": [], "explanation": "", "mule_behavior_analysis": "", "search_source": "not_run", "analysis_source": "not_run", "service_source": "not_run"}
+    if not flagged:
+        return result
+    query = f"customer_id {tx.customer_id} device_id {tx.device_id} transaction {tx.transaction_id}"
+    try:
+        raw_matches = await discovery_search(query)
+        result["search_source"] = "watson_discovery"
+    except Exception:
         raw_matches = search_cases(customer_id=tx.customer_id, device_id=tx.device_id)
-        for match in raw_matches:
-            tags = tag_case_text(match["content"])
-            distress_signals.extend(tags["distress_signals"])
-            mule_ring_signals.extend(tags["mule_ring_signals"])
-            matched_cases.append({
-                "case_id": match["case_id"],
-                "file": match["file"],
-                "content": match["content"],
-                "distress_signals": tags["distress_signals"],
-                "mule_ring_signals": tags["mule_ring_signals"]
-            })
+        result["search_source"] = "local_fallback"
+    combined = []
+    for match in raw_matches:
+        tags = tag_case_text(match.get("content", ""))
+        result["distress_signals"].extend(tags["distress_signals"])
+        result["mule_ring_signals"].extend(tags["mule_ring_signals"])
+        result["matched_cases"].append({"case_id": match.get("case_id", "UNKNOWN"), "file": match.get("file", ""), "content": match.get("content", ""), "distress_signals": tags["distress_signals"], "mule_ring_signals": tags["mule_ring_signals"]})
+        combined.append(match.get("content", ""))
+    try:
+        analysis = await watsonx_analyze("\n\n".join(combined), tx.model_dump(mode="json"))
+        result.update({"explanation": analysis["explanation"], "mule_behavior_analysis": analysis["mule_behavior_analysis"], "analysis_source": "watsonx_ai"})
+    except Exception:
+        result["explanation"] = "Local fallback: matched case documents were reviewed with keyword signals."
+        result["mule_behavior_analysis"] = "Local fallback: mule-ring keyword signals are shown in the matched cases."
+        result["analysis_source"] = "local_fallback"
+    sources = [result["search_source"], result["analysis_source"]]
+    live = [s for s in sources if s not in ("local_fallback", "not_run")]
+    result["service_source"] = "+".join(live) if live else "local_fallback"
+    result["distress_signals"] = sorted(set(result["distress_signals"]))
+    result["mule_ring_signals"] = sorted(set(result["mule_ring_signals"]))
+    return result
 
-    return {
-        "transaction_id": tx.transaction_id,
-        "fraud_probability": fraud_prob,
-        "flagged": flagged,
-        "matched_cases": matched_cases,
-        "distress_signals": list(set(distress_signals)),
-        "mule_ring_signals": list(set(mule_ring_signals))
-    }
-
-
-# ---------------------------------------------------------
 # Lifecycle
 # ---------------------------------------------------------
 @app.on_event("startup")
@@ -461,14 +464,14 @@ def predict(tx: TransactionPayload):
 # TIER 2: BUSINESS INTELLIGENCE ENDPOINTS
 # ---------------------------------------------------------
 @app.post("/investigate", tags=["Tier 2: Business Intelligence Track"])
-def investigate(payload: TransactionPayload):
+async def investigate(payload: TransactionPayload):
     """
     Tier 2 Business Intelligence Endpoint:
     Scores the transaction, then queries historical KYC/SAR case notes and extracts distress/mule behavioral tags.
     """
     try:
         pred = run_predict_internal(payload)
-        return run_investigate_internal(payload, pred["flagged"], pred["fraud_probability"])
+        return await run_investigate_internal(payload, pred["flagged"], pred["fraud_probability"])
     except Exception as e:
         raise HTTPException(status_code=400, detail=str(e))
 
@@ -477,7 +480,7 @@ def investigate(payload: TransactionPayload):
 # TIER 3: PRODUCT DEVELOPMENT & CURTAILMENT ENDPOINTS
 # ---------------------------------------------------------
 @app.post("/curtail", tags=["Tier 3: Product Development Track"])
-def curtail_transaction(tx: TransactionPayload):
+async def curtail_transaction(tx: TransactionPayload):
     """
     Tier 3 Product Curtailment Endpoint:
     Executes the full pipeline in-process:
@@ -494,7 +497,7 @@ def curtail_transaction(tx: TransactionPayload):
         flagged = pred["flagged"]
 
         # Step 2: BI Investigation
-        bi_res = run_investigate_internal(tx, flagged, fraud_prob)
+        bi_res = await run_investigate_internal(tx, flagged, fraud_prob)
         distress_signals = bi_res["distress_signals"]
         mule_ring_signals = bi_res["mule_ring_signals"]
 

@@ -20,7 +20,7 @@ After a successful deploy, the live route hosts the whole three-track demo:
 2. Open the **OpenShift Cluster OCPv** reservation.
 3. Copy the **OCP Console** URL at the bottom of the reservation.
 4. Log in as `kube:admin` with the password shown on the reservation.
-5. In the console, click the user menu (top right) → **Copy login command** → **Display token**.
+5. In the console, click the user menu (top right) â†’ **Copy login command** â†’ **Display token**.
 6. Paste the `oc login --token=... --server=...` command into a local terminal (do **not** run `ibmcloud login`).
 
 ## CLI deploy (from this repo)
@@ -49,3 +49,16 @@ oc project <your-project>
 | Data Science | ndetokelly@gmail.com | `POST /predict` |
 | Business Intelligence | manaenjulius@gmail.com | `POST /investigate`, case search + mule/distress tags |
 | Product Development | edwardmanasseh@gmail.com | `POST /curtail`, `/dashboard`, Orchestrate skill |
+
+## BI IBM services configuration
+
+Watson NLU is unavailable and is not implemented or claimed. Only IBM services provisioned through the TechZone reservation may be configured; do not use IBM Cloud services outside that reservation. When configured, the BI layer uses Watson Discovery for case-document search and watsonx.ai for plain-language explanations and multi-hop mule/layering analysis. If either service is missing, unavailable, or returns an error, that step uses the labelled `local_fallback` implementation. If the transaction is not flagged, all source fields are `not_run`.
+
+Create the optional Secret in the `team8-fraud` project without putting credentials in Git or command history. Use an interactive/managed secret workflow, then restart or redeploy the app:
+
+```powershell
+oc -n team8-fraud create secret generic ibm-bi-services --from-literal=IBM_DISCOVERY_URL=... --from-literal=IBM_DISCOVERY_APIKEY=... --from-literal=IBM_DISCOVERY_PROJECT_ID=... --from-literal=IBM_DISCOVERY_COLLECTION_ID=... --from-literal=IBM_WATSONX_URL=... --from-literal=IBM_WATSONX_IAM_URL=... --from-literal=IBM_WATSONX_APIKEY=... --from-literal=IBM_WATSONX_PROJECT_ID=... --from-literal=IBM_WATSONX_MODEL_ID=...
+oc -n team8-fraud rollout latest dc/fraud-platform
+```
+
+The manifest references these keys as optional Secret values. Never commit the Secret, print its values, or include API keys in demo output. `/investigate` returns `search_source`, `analysis_source`, and `service_source`; these fields are the evidence for whether IBM services were actually used.
